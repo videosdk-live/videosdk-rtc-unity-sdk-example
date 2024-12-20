@@ -273,5 +273,5 @@ public void MicDisable()
 
 - Under Frameworks, Libraries and Embedded Content of the General tab, add the VideoSDK and related frameworks.
 
-![iOS Integration Step 1](https://cdn.videosdk.live/website-resources/docs-resources/ios_integration1.png)
-![iOS Integration Step 2](https://cdn.videosdk.live/website-resources/docs-resources/ios_integration2.png)
+![iOS Integration Step 1](https://cdn.videosdk.live/website-resources/docs-resources/unity_ios_integration1.png)
+![iOS Integration Step 2](https://cdn.videosdk.live/website-resources/docs-resources/unity_ios_integration2.png)
