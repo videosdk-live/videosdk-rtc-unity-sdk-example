@@ -263,3 +263,15 @@ public void MicDisable()
 {
     _localParticipant?.SetAudio(false);
 }
+```
+
+## iOS Setup
+
+- To run it on iOS, build the project from Unity for iOS.
+
+- After building the project for iOS, open the Xcode project and navigate to the Unity-iPhone target.
+
+- Under Frameworks, Libraries and Embedded Content of the General tab, add the VideoSDK and related frameworks.
+
+![iOS Integration Step 1](https://cdn.videosdk.live/website-resources/docs-resources/ios_integration1.png)
+![iOS Integration Step 2](https://cdn.videosdk.live/website-resources/docs-resources/ios_integration2.png)
