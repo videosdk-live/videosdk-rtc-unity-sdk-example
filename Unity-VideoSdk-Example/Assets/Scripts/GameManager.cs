@@ -66,7 +66,7 @@ public class GameManager : MonoBehaviour
              _localParticipant.OnStreamDisableCallback += OnStreamDisable;
 
 
-            _meetIdTxt.text = _meetIdInputField.text;
+            _meetIdTxt.text = videosdk.MeetingID;
             _meetIdInputField.text = string.Empty;
             //_meetIdInputField.Select();
             _meetCreateActivity.SetActive(false);
@@ -106,13 +106,13 @@ public class GameManager : MonoBehaviour
                 if(obj.ParticipantId== _participantList[i].Id)
                 {
                     participant = _participantList[i];
+                    _participantList.RemoveAt(i);
                     break;
                 }
                 
             }
             if(participant!=null)
             {
-                _participantList.Remove(participant);
                 Destroy(participant.transform.parent.gameObject);
             }
         }
