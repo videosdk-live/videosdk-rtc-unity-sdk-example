@@ -47,6 +47,15 @@ dependencies {
 - If your project has set `android.useAndroidX=true`, 
 then set `android.enableJetifier=true` in the `gradleTemplate.properties` file to migrate your project to AndroidX and avoid duplicate class conflict.
 
+
+```jsx
+//...
+**ADDITIONAL_PROPERTIES**
+android.enableJetifier=true
+android.useAndroidX=true
+android.suppressUnsupportedCompileSdk=34
+```
+
 ## iOS Setup
 
 - To run it on iOS, build the project from Unity for iOS.
