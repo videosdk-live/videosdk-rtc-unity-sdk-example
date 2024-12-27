@@ -1,6 +1,6 @@
 # videosdk-rtc-unity-sdk-example
 
-## How to install VideoSDK package? 
+## How to install the VideoSDK package? 
 
 1. Open Unity’s Package Manager by selecting from the top bar:
    **Window -> Package Manager**.
@@ -12,6 +12,19 @@
    ```jsx
    https://github.com/videosdk-live/videosdk-rtc-unity-sdk.git
    ```
+4. Add the `com.unity.nuget.newtonsoft-json` package by following the instructions provided [here](https://github.com/applejag/Newtonsoft.Json-for-Unity/wiki/Install-official-via-UPM
+).
+
+## iOS Setup
+
+- To run it on iOS, build the project from Unity for iOS.
+
+- After building the project for iOS, open the Xcode project and navigate to the Unity-iPhone target.
+
+- Under Frameworks, Libraries and Embedded Content of the General tab, add the VideoSDK and related frameworks.
+
+![iOS Integration Step 1](https://cdn.videosdk.live/website-resources/docs-resources/unity_ios_integration1.png)
+![iOS Integration Step 2](https://cdn.videosdk.live/website-resources/docs-resources/unity_ios_integration2.png)
 
 # Integration
 
@@ -264,14 +277,3 @@ public void MicDisable()
     _localParticipant?.SetAudio(false);
 }
 ```
-
-## iOS Setup
-
-- To run it on iOS, build the project from Unity for iOS.
-
-- After building the project for iOS, open the Xcode project and navigate to the Unity-iPhone target.
-
-- Under Frameworks, Libraries and Embedded Content of the General tab, add the VideoSDK and related frameworks.
-
-![iOS Integration Step 1](https://cdn.videosdk.live/website-resources/docs-resources/unity_ios_integration1.png)
-![iOS Integration Step 2](https://cdn.videosdk.live/website-resources/docs-resources/unity_ios_integration2.png)
