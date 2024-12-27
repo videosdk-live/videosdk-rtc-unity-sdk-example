@@ -1,5 +1,3 @@
-# videosdk-rtc-unity-sdk-example
-
 ## How to install the VideoSDK package? 
 
 1. Open Unity’s Package Manager by selecting from the top bar:
@@ -14,6 +12,40 @@
    ```
 4. Add the `com.unity.nuget.newtonsoft-json` package by following the instructions provided [here](https://github.com/applejag/Newtonsoft.Json-for-Unity/wiki/Install-official-via-UPM
 ).
+
+## Android Setup
+
+- Add the repository to `settingsTemplate.gradle` file in your project.
+
+```jsx
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
+    repositories {
+        **ARTIFACTORYREPOSITORY**
+        google()
+        mavenCentral()
+        jcenter()
+         maven {
+            url = uri("https://maven.aliyun.com/repository/jcenter")
+        }
+        flatDir {
+            dirs "${project(':unityLibrary').projectDir}/libs"
+        }
+    }
+}
+```
+
+- Install our Android SDK in `mainTemplate.gradle`
+
+```jsx
+dependencies {
+     //...
+    implementation 'live.videosdk:rtc-android-sdk:0.1.37'
+**DEPS**}
+```
+
+- If your project has set `android.useAndroidX=true`, 
+then set `android.enableJetifier=true` in the `gradleTemplate.properties` file to migrate your project to AndroidX and avoid duplicate class conflict.
 
 ## iOS Setup
 
