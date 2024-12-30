@@ -254,9 +254,19 @@ private void OnParticipantJoined(IParticipant participant)
  
  private void OnParticipantJoined(IParticipant participant)
  {
-    if (participant.isLocal)
+    GameObject go = GameObject.Find("ParticipantView");
+
+    if (participantView == null)
     {
-        _localParticipant = participant;
+        participantView = go.AddComponent<VideoSurface>();
+    }
+    
+	   participantView.SetParticipant(pariticipant);
+	   participantView.SetEnable(true);
+
+    if (participantView.IsLocal)
+    {
+        _localParticipant = participantView;
     }
  }
 
@@ -280,10 +290,20 @@ private VideoSurface _localParticipant;
 
 private void OnParticipantJoined(IParticipant participant)
 {
-  if (participant.isLocal)
-  {
-      _localParticipant = participant;
-  }
+  GameObject go = GameObject.Find("ParticipantView");
+
+    if (participantView == null)
+    {
+        participantView = go.AddComponent<VideoSurface>();
+    }
+    
+	   participantView.SetParticipant(pariticipant);
+	   participantView.SetEnable(true);
+
+    if (participantView.IsLocal)
+    {
+        _localParticipant = participantView;
+    }
 }
 
 public void CamEnable()
@@ -302,10 +322,20 @@ public void CamDisable()
 ```csharp
 private void OnParticipantJoined(IParticipant participant)
 {
-  if (participant.isLocal)
-  {
-      _localParticipant = participant;   
-  }
+  GameObject go = GameObject.Find("ParticipantView");
+
+    if (participantView == null)
+    {
+        participantView = go.AddComponent<VideoSurface>();
+    }
+    
+	   participantView.SetParticipant(pariticipant);
+	   participantView.SetEnable(true);
+
+    if (participantView.IsLocal)
+    {
+        _localParticipant = participantView;
+    }
 }
 
 public void MicEnable()
