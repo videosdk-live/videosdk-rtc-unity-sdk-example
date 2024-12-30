@@ -261,8 +261,8 @@ private void OnParticipantJoined(IParticipant participant)
         participantView = go.AddComponent<VideoSurface>();
     }
     
-	   participantView.SetParticipant(pariticipant);
-	   participantView.SetEnable(true);
+   participantView.SetParticipant(pariticipant);
+   participantView.SetEnable(true);
 
     if (participantView.IsLocal)
     {
@@ -297,8 +297,8 @@ private void OnParticipantJoined(IParticipant participant)
         participantView = go.AddComponent<VideoSurface>();
     }
     
-	   participantView.SetParticipant(pariticipant);
-	   participantView.SetEnable(true);
+   participantView.SetParticipant(pariticipant);
+   participantView.SetEnable(true);
 
     if (participantView.IsLocal)
     {
@@ -329,8 +329,8 @@ private void OnParticipantJoined(IParticipant participant)
         participantView = go.AddComponent<VideoSurface>();
     }
     
-	   participantView.SetParticipant(pariticipant);
-	   participantView.SetEnable(true);
+   participantView.SetParticipant(pariticipant);
+   participantView.SetEnable(true);
 
     if (participantView.IsLocal)
     {
