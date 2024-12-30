@@ -1,6 +1,4 @@
-# videosdk-rtc-unity-sdk-example
-
-## How to install VideoSDK package? 
+## How to install the VideoSDK package? 
 
 1. Open Unity’s Package Manager by selecting from the top bar:
    **Window -> Package Manager**.
@@ -12,6 +10,62 @@
    ```jsx
    https://github.com/videosdk-live/videosdk-rtc-unity-sdk.git
    ```
+4. Add the `com.unity.nuget.newtonsoft-json` package by following the instructions provided [here](https://github.com/applejag/Newtonsoft.Json-for-Unity/wiki/Install-official-via-UPM
+).
+
+## Android Setup
+
+- Add the repository to `settingsTemplate.gradle` file in your project.
+
+```jsx
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
+    repositories {
+        **ARTIFACTORYREPOSITORY**
+        google()
+        mavenCentral()
+        jcenter()
+         maven {
+            url = uri("https://maven.aliyun.com/repository/jcenter")
+        }
+        flatDir {
+            dirs "${project(':unityLibrary').projectDir}/libs"
+        }
+    }
+}
+```
+
+- Install our Android SDK in `mainTemplate.gradle`
+
+```jsx
+dependencies {
+     //...
+    implementation 'live.videosdk:rtc-android-sdk:0.1.37'
+**DEPS**}
+```
+
+- If your project has set `android.useAndroidX=true`, 
+then set `android.enableJetifier=true` in the `gradleTemplate.properties` file to migrate your project to AndroidX and avoid duplicate class conflict.
+
+
+```jsx
+//...
+**ADDITIONAL_PROPERTIES**
+android.enableJetifier=true
+android.useAndroidX=true
+android.suppressUnsupportedCompileSdk=34
+```
+
+## iOS Setup
+
+- To run it on iOS, build the project from Unity for iOS.
+
+- After building the project for iOS, open the Xcode project and navigate to the Unity-iPhone target.
+
+- Under Frameworks, Libraries and Embedded Content of the General tab, add the VideoSDK and related frameworks.
+
+![iOS Integration Step 1](https://cdn.videosdk.live/website-resources/docs-resources/unity_ios_integration1.png)
+![iOS Integration Step 2](https://cdn.videosdk.live/website-resources/docs-resources/unity_ios_integration2.png)
 
 # Integration
 
@@ -263,3 +317,4 @@ public void MicDisable()
 {
     _localParticipant?.SetAudio(false);
 }
+```
