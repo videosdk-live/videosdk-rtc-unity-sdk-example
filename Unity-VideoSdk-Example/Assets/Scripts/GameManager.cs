@@ -5,6 +5,7 @@ using UnityEngine;
 using live.videosdk;
 using UnityEngine.Android;
 using TMPro;
+using EasyUI.Toast;
 public class GameManager : MonoBehaviour
 {
     private bool micToggle;
@@ -40,6 +41,7 @@ public class GameManager : MonoBehaviour
         videosdk.OnParticipantJoinedCallback += OnParticipantJoined;
         videosdk.OnParticipantLeftCallback += OnParticipantLeft;
         videosdk.OnCreateMeetingIdFailedCallback += OnCreateMeetFailed;
+        videosdk.OnMeetingStateChangedCallback += OnMeetingStateChanged;
         videosdk.OnErrorCallback += OnError;
         _meetCreateActivity.SetActive(true);
         _meetJoinActivity.SetActive(true);
@@ -47,12 +49,14 @@ public class GameManager : MonoBehaviour
 
     private void OnError(Error error)
     {
-        Debug.LogError($"Error-Code: {error.Code} message: {error.Message}");
+        Debug.LogError($"Error-Code: {error.Code} Message: {error.Message} Type: {error.Type}");
+        Toast.Show($"OnError: Error-Code: {error.Code} Message: {error.Message}", 3f, Color.red, ToastPosition.MiddleCenter);
     }
 
     private void OnParticipantJoined(IParticipant obj)
     {   
         Debug.Log($"On Pariticpant Joined: " + obj.ToString());
+        Toast.Show($"<color=green>PariticpantJoined: </color> {obj.ToString()}", 1f, ToastPosition.TopCenter);
         VideoSurface participant = Instantiate(_videoSurfacePrefab, _parent.transform).GetComponentInChildren<VideoSurface>();
         participant.SetVideoSurfaceType(VideoSurfaceType.RawImage);//For raw Image
         participant.SetParticipant(obj);
@@ -93,7 +97,7 @@ public class GameManager : MonoBehaviour
     private void OnParticipantLeft(IParticipant obj)
     {
         Debug.Log($"On Pariticpant Left: " + obj.ToString());
-
+        Toast.Show($"<color=yellow>PariticpantLeft: </color> {obj.ToString()}", 2f, ToastPosition.TopCenter);
         if (obj.IsLocal)
         {
             OnLeave();
@@ -152,6 +156,13 @@ public class GameManager : MonoBehaviour
         _meetCreateActivity.SetActive(true);
         _meetJoinActivity.SetActive(true);
         Debug.LogError(obj);
+        Toast.Show($"OnCreateMeetFailed: {obj}", 1f, Color.red, ToastPosition.TopCenter);
+    }
+
+    private void OnMeetingStateChanged(string obj)
+    {
+        Toast.Show($"<color=yellow>MeetingStateChanged: </color> {obj}", 2f, ToastPosition.TopCenter);
+        Debug.Log($"MeetingStateChanged: {obj}");
     }
 
     public void JoinMeet()
