@@ -84,7 +84,7 @@ Use the `CreateId` method with a token to generate a meeting ID. Refer to the [T
 ```csharp
 public void CreateMeeting()
 {
-   meeting.CreateId("YOUR_TOKEN");
+   meeting.CreateMeetingId("YOUR_TOKEN");
 }
 ```
 
