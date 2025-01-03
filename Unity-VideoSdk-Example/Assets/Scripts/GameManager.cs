@@ -65,14 +65,10 @@ public class GameManager : MonoBehaviour
         if (obj.IsLocal)
         {
             _localParticipant = participant;
-
              _localParticipant.OnStreamEnableCallback += OnStreamEnable;
              _localParticipant.OnStreamDisableCallback += OnStreamDisable;
-
-
             _meetIdTxt.text = videosdk.MeetingID;
             _meetIdInputField.text = string.Empty;
-            //_meetIdInputField.Select();
             _meetCreateActivity.SetActive(false);
             _meetJoinActivity.SetActive(false);
             _meetControlls.SetActive(true);
@@ -168,8 +164,7 @@ public class GameManager : MonoBehaviour
     public void JoinMeet()
     {
         Debug.Log("User Request for join meet");
-        if (string.IsNullOrEmpty(_meetIdInputField.text)) return;
-       
+        if (string.IsNullOrEmpty(_meetIdInputField.text)) return;      
         videosdk.Join(_token, _meetIdInputField.text,"User", true, true);
     }
 
@@ -191,6 +186,67 @@ public class GameManager : MonoBehaviour
         videosdk?.Leave();
     }
 
+    private void OnApplicationPause(bool pause)
+    {
+        if (_participantList.Count > 1)
+        {
+            AudioStream(pause);
+            VideoStream(pause);
+
+        }
+
+    }
+
+    private void AudioStream(bool status)
+    {
+        foreach (var participant in _participantList)
+        {
+            if (!participant.IsLocal)
+            {
+                switch (status)
+                {
+                    case true:
+                        {
+                            participant.PauseAudio();
+                            break;
+                        }
+                    case false:
+                        {
+                            participant.ResumeAudio();
+                            break;
+                        }
+                }
+            }
+
+        }
+        _localParticipant?.SetAudio(status);
+    }
+
+    private void VideoStream(bool status)
+    {
+        foreach (var participant in _participantList)
+        {
+            if (!participant.IsLocal)
+            {
+                switch (status)
+                {
+                    case true:
+                        {
+                            participant.PauseVideo();
+                            break;
+                        }
+                    case false:
+                        {
+                            participant.ResumeVideo();
+                            break;
+                        }
+                }
+            }
+
+        }
+    }
+
+
 
     private void OnPermissionGranted(string permissionName)
     {
@@ -204,13 +260,13 @@ public class GameManager : MonoBehaviour
 
     private void OnPermissionDenied(string permissionName)
     {
-        Debug.LogError($"VideoSDK can't Initialize {permissionName} Denied");
+       // Debug.LogError($"VideoSDK can't Initialize {permissionName} Denied");
 
     }
 
     private void OnPermissionDeniedAndDontAskAgain(string permissionName)
     {
-        Debug.LogError($"VideoSDK can't Initialize {permissionName} Denied And DontAskAgain");
+       // Debug.LogError($"VideoSDK can't Initialize {permissionName} Denied And DontAskAgain");
     }
 
 
