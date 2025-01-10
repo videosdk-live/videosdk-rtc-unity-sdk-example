@@ -163,9 +163,16 @@ public class GameManager : MonoBehaviour
 
     public void JoinMeet()
     {
-        Debug.Log("User Request for join meet");
-        if (string.IsNullOrEmpty(_meetIdInputField.text)) return;      
-        videosdk.Join(_token, _meetIdInputField.text,"User", true, true);
+        if (string.IsNullOrEmpty(_meetIdInputField.text)) return;
+
+        try
+        {
+            videosdk.Join(_token, _meetIdInputField.text, "User", true, false);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError("Join Meet Failed: " + ex.Message);
+        }
     }
 
     public void CamToggle()
@@ -219,7 +226,7 @@ public class GameManager : MonoBehaviour
             }
 
         }
-        _localParticipant?.SetAudio(status);
+        _localParticipant?.SetAudio(!status);
     }
 
     private void VideoStream(bool status)
