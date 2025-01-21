@@ -3,8 +3,7 @@ apply plugin: 'com.android.library'
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    //implementation 'live.videosdk:rtc-android-sdk:0.1.37'
-    implementation 'com.github.zujonow:rtc-android-sdk:42f76e18c6'
+    implementation 'live.videosdk:rtc-android-sdk:0.1.39'
 **DEPS**}
 
 android {
