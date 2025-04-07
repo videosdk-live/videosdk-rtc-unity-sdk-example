@@ -76,14 +76,14 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void OnStreamDisable(string kind)
+    private void OnStreamDisable(StreamKind kind)
     {
         Debug.Log($"OnStreamDisable {kind}");
         camToggle = _localParticipant.CamEnabled;
         micToggle = _localParticipant.MicEnabled;
     }
 
-    private void OnStreamEnable(string kind)
+    private void OnStreamEnable(StreamKind kind)
     {
         Debug.Log($"OnStreamEnable {kind}");
         camToggle = _localParticipant.CamEnabled;
@@ -103,7 +103,7 @@ public class GameManager : MonoBehaviour
             VideoSurface participant = null;
             for (int i = 0; i < _participantList.Count; i++)
             {
-                if(obj.ParticipantId== _participantList[i].Id)
+                if(obj.Id== _participantList[i].ParticipantId)
                 {
                     participant = _participantList[i];
                     _participantList.RemoveAt(i);
@@ -155,7 +155,7 @@ public class GameManager : MonoBehaviour
         Toast.Show($"OnCreateMeetFailed: {obj}", 1f, Color.red, ToastPosition.TopCenter);
     }
 
-    private void OnMeetingStateChanged(string obj)
+    private void OnMeetingStateChanged(MeetingState obj)
     {
         Toast.Show($"<color=yellow>MeetingStateChanged: </color> {obj}", 2f, ToastPosition.TopCenter);
         Debug.Log($"MeetingStateChanged: {obj}");
@@ -214,12 +214,12 @@ public class GameManager : MonoBehaviour
                 {
                     case true:
                         {
-                            participant.PauseAudio();
+                            participant.PauseStream(StreamKind.AUDIO);
                             break;
                         }
                     case false:
                         {
-                            participant.ResumeAudio();
+                            participant.ResumeStream(StreamKind.AUDIO);
                             break;
                         }
                 }
@@ -239,12 +239,12 @@ public class GameManager : MonoBehaviour
                 {
                     case true:
                         {
-                            participant.PauseVideo();
+                            participant.PauseStream(StreamKind.VIDEO);
                             break;
                         }
                     case false:
                         {
-                            participant.ResumeVideo();
+                            participant.ResumeStream(StreamKind.VIDEO);
                             break;
                         }
                 }
