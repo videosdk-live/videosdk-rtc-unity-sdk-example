@@ -1,5 +1,6 @@
 using EasyUI.Toast;
 using live.videosdk;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -64,7 +65,13 @@ public class GameManager : MonoBehaviour
         meeting.OnParticipantLeftCallback += OnParticipantLeft;
         meeting.OnCreateMeetingIdFailedCallback += OnCreateMeetingFailed;
         meeting.OnMeetingStateChangedCallback += OnMeetingStateChanged;
-        meeting.OnFetchAudioDeviceCallback += OnFetchAudioDevice;
+
+        meeting.OnAvailableAudioDevicesCallback += OnAvailableAudioDevices;
+        meeting.OnAudioDeviceChangedCallback += OnAudioDeviceChanged;
+
+        meeting.OnAvailableVideoDevicesCallback += OnAvailableVideoDevices;
+        meeting.OnVideoDeviceChangedCallback += OnVideoDeviceChanged;
+
         meeting.OnErrorCallback += OnError;
         _meetingJoinPanel.SetActive(true);
 
@@ -221,11 +228,7 @@ public class GameManager : MonoBehaviour
         meeting?.Leave();
     }
 
-    public void GetAudioDevices()
-    {
-        OnFetchAudioDevice(new string[] { "vishal", "narola", "jemit", "savaliya" });
-        meeting?.GetAudioDevices();
-    }
+
 
     private void OnApplicationPause(bool pause)
     {
@@ -383,35 +386,131 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Transform deviceCloneContent;
     [SerializeField] private GameObject devicesContentPanel;
     private List<DeviceCloneController> devicesList = new List<DeviceCloneController>();
-    private void OnFetchAudioDevice(string[] devices)
+
+    private Device[] availableAudioDevice;
+    private Device[] availableVideoDevice;
+
+
+    // Assign on button
+    public void GetAudioDevices()
     {
-        devicesList.ForEach(device => Destroy(device.gameObject));
-        devicesList.Clear();
-      
-        for (int i = 0; i < devices.Length; i++)
-        {
-            DeviceCloneController deviceClone = Instantiate(devicePrefab, deviceCloneContent);
-            devicesList.Add(deviceClone);
-            deviceClone.SetData(devices[i]);
-            string deviceName = devices[i];
-            deviceClone.button.onClick.AddListener(() =>
-            {
-                OnDeviceSelect(deviceName, deviceClone);
-            });
-        }
-        devicesContentPanel.SetActive(true);
+        meeting?.GetAudioDevices();
     }
 
-    public void OnDeviceSelect(string deviceName, DeviceCloneController deviceClone)
+    // Assign on button
+    public void ChangeAudioDevices(int index)
     {
-        Debug.Log($"selected {deviceName}");
-        deviceClone.SelectDevice();
-        devicesContentPanel.SetActive(false);
-        // Optional: Handle value change
-        //Debug.Log("Dropdown value changed to: " + deviceDropdown.options[value].text);
+        ChangeAudioDevices(availableAudioDevice[index].label);
     }
+
+    private void ChangeAudioDevices(string deviceLabel)
+    {
+        meeting?.ChangeAudioDevice(deviceLabel);
+    }
+
+    private void OnAvailableAudioDevices(string availableDevices, string selectedDeviceJson)
+    {
+        Debug.Log($"available devices {availableDevices}");
+        Debug.Log($"selectedDeviceJson {selectedDeviceJson}");
+
+        // Deserialize directly from array JSON
+        availableAudioDevice = JsonConvert.DeserializeObject<Device[]>(availableDevices);
+
+        foreach (var device in availableAudioDevice)
+        {
+            Debug.Log($"device name {device.label} {device.kind} {device.deviceId}");
+        }
+
+        Device selectedDevice = JsonConvert.DeserializeObject<Device>(selectedDeviceJson);
+
+        Debug.Log($"selected device {selectedDevice.label}");
+
+        //devicesList.ForEach(device => Destroy(device.gameObject));
+        //devicesList.Clear();
+
+        //for (int i = 0; i < devices.Length; i++)
+        //{
+        //    DeviceCloneController deviceClone = Instantiate(devicePrefab, deviceCloneContent);
+        //    devicesList.Add(deviceClone);
+        //    deviceClone.SetData(devices[i]);
+        //    string deviceName = devices[i];
+        //    deviceClone.button.onClick.AddListener(() =>
+        //    {
+        //        OnDeviceSelect(deviceName, deviceClone);
+        //    });
+        //}
+        //devicesContentPanel.SetActive(true);
+    }
+
+    private void OnAudioDeviceChanged(string availableDevice, string selectedDevice)
+    {
+        Debug.Log($"available devices {availableDevice}");
+        Debug.Log($"selectedDeviceJson {selectedDevice}");
+    }
+
+    //public void OnDeviceSelect(string deviceName, DeviceCloneController deviceClone)
+    //{
+    //    Debug.Log($"selected {deviceName}");
+    //    deviceClone.SelectDevice();
+    //    devicesContentPanel.SetActive(false);
+    //    // Optional: Handle value change
+    //    //Debug.Log("Dropdown value changed to: " + deviceDropdown.options[value].text);
+    //}
+
+
+    // Assign on button
+    public void GetVideoDevices()
+    {
+        meeting?.GetVideoDevices();
+    }
+
+    private void OnAvailableVideoDevices(string availableDevices, string selectedDeviceJson)
+    {
+        Debug.Log($"available devices {availableDevices}");
+        Debug.Log($"selectedDeviceJson {selectedDeviceJson}");
+
+        // Deserialize directly from array JSON
+        availableVideoDevice = JsonConvert.DeserializeObject<Device[]>(availableDevices);
+
+        foreach (var device in availableVideoDevice)
+        {
+            Debug.Log($"device name {device.label} {device.kind} {device.deviceId}");
+        }
+
+        Device selectedDevice = JsonConvert.DeserializeObject<Device>(selectedDeviceJson);
+
+        Debug.Log($"selected device {selectedDevice.label}");
+    }
+
+    // Assign on button
+    public void ChangeVideoDevices(int index)
+    {
+        ChangeVideoDevices(availableVideoDevice[index].label);
+    }
+
+    private void ChangeVideoDevices(string deviceLabel)
+    {
+        meeting?.ChangeVideoDevice(deviceLabel);
+    }
+
+    private void OnVideoDeviceChanged(string availableDevice, string selectedDevice)
+    {
+        Debug.Log($"available devices {availableDevice}");
+        Debug.Log($"selectedDeviceJson {selectedDevice}");
+    }
+
+
+    // Assing On Button
+    public void GetSelectedAudioDevice()
+    {
+        string device = meeting?.GetSelectedAudioDevice();
+        Debug.Log($"GetSelectedAudioDevice {device}");
+    }
+
 
     #endregion
+
+
 }
 
 

@@ -253,7 +253,7 @@
       "url": "https://packages.unity.com"
     },
     "live.videosdk.unity": {
-      "version": "file:/Users/Shared/Vishal.Narola/Unity Projects/videosdk-rtc-unity-sdk",
+      "version": "file:D:/Unity/GitProject/VideoSdk/videosdk-rtc-unity-sdk",
       "depth": 0,
       "source": "local",
       "dependencies": {}
