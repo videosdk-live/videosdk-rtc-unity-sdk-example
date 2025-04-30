@@ -58,6 +58,8 @@ public class GameManager : MonoBehaviour
     }
     void Start()
     {
+        CustomStreamInit(); // Object Assign
+
         meeting = Meeting.GetMeetingObject();
 
         meeting.OnCreateMeetingIdCallback += OnCreateMeeting;
@@ -166,7 +168,7 @@ public class GameManager : MonoBehaviour
     {
         _meetingIdTxt.text = meetingId;
         Debug.Log($"OnCreateMeeting {meetingId}");
-        meeting.Join(_token, meetingId, "User", true, false);
+        meeting.Join(_token, meetingId, "User", true, true, GetCustomStream());
     }
 
     public void CreateMeeting()
@@ -202,7 +204,7 @@ public class GameManager : MonoBehaviour
 
         try
         {
-            meeting.Join(_token, _meetingIdInputField.text, "User", true, true);
+            meeting.Join(_token, _meetingIdInputField.text, "User", true, true, null);
         }
         catch (Exception ex)
         {
@@ -396,11 +398,7 @@ public class GameManager : MonoBehaviour
     // Assign on button
     public void GetAudioDevices()
     {
-        string availableDevices = meeting?.GetAudioDevices();
-        Debug.Log("GetAudioDevices " + availableDevices);
-        // Deserialize directly from array JSON
-        availableAudioDevice = JsonConvert.DeserializeObject<Device[]>(availableDevices);
-
+        availableAudioDevice = meeting?.GetAudioDevices();
         //foreach (var device in availableAudioDevice)
         //{
         //    Debug.Log($"device name {device.label} {device.kind} {device.deviceId}");
@@ -420,50 +418,48 @@ public class GameManager : MonoBehaviour
 
     //private void OnAvailableAudioDevices(string availableDevices, string selectedDeviceJson)
     //{
-        //Debug.Log($"available devices {availableDevices}");
-        //Debug.Log($"selectedDeviceJson {selectedDeviceJson}");
+    //Debug.Log($"available devices {availableDevices}");
+    //Debug.Log($"selectedDeviceJson {selectedDeviceJson}");
 
-        //// Deserialize directly from array JSON
-        //availableAudioDevice = JsonConvert.DeserializeObject<Device[]>(availableDevices);
+    //// Deserialize directly from array JSON
+    //availableAudioDevice = JsonConvert.DeserializeObject<Device[]>(availableDevices);
 
-        //foreach (var device in availableAudioDevice)
-        //{
-        //    Debug.Log($"device name {device.label} {device.kind} {device.deviceId}");
-        //}
-
-        //Device selectedDevice = JsonConvert.DeserializeObject<Device>(selectedDeviceJson);
-
-        //Debug.Log($"selected device {selectedDevice.label}");
-
-        //devicesList.ForEach(device => Destroy(device.gameObject));
-        //devicesList.Clear();
-
-        //for (int i = 0; i < devices.Length; i++)
-        //{
-        //    DeviceCloneController deviceClone = Instantiate(devicePrefab, deviceCloneContent);
-        //    devicesList.Add(deviceClone);
-        //    deviceClone.SetData(devices[i]);
-        //    string deviceName = devices[i];
-        //    deviceClone.button.onClick.AddListener(() =>
-        //    {
-        //        OnDeviceSelect(deviceName, deviceClone);
-        //    });
-        //}
-        //devicesContentPanel.SetActive(true);
+    //foreach (var device in availableAudioDevice)
+    //{
+    //    Debug.Log($"device name {device.label} {device.kind} {device.deviceId}");
     //}
 
-    private void OnAudioDeviceChanged(string availableDevice, string selectedDevice)
+    //Device selectedDevice = JsonConvert.DeserializeObject<Device>(selectedDeviceJson);
+
+    //Debug.Log($"selected device {selectedDevice.label}");
+
+    //devicesList.ForEach(device => Destroy(device.gameObject));
+    //devicesList.Clear();
+
+    //for (int i = 0; i < devices.Length; i++)
+    //{
+    //    DeviceCloneController deviceClone = Instantiate(devicePrefab, deviceCloneContent);
+    //    devicesList.Add(deviceClone);
+    //    deviceClone.SetData(devices[i]);
+    //    string deviceName = devices[i];
+    //    deviceClone.button.onClick.AddListener(() =>
+    //    {
+    //        OnDeviceSelect(deviceName, deviceClone);
+    //    });
+    //}
+    //devicesContentPanel.SetActive(true);
+    //}
+
+    private void OnAudioDeviceChanged(Device[] availableDevice, Device selectedDevice)
     {
-        Debug.Log($"available devices {availableDevice}");
-        Debug.Log($"selectedDeviceJson {selectedDevice}");
+        availableAudioDevice = availableDevice;
+        selectedAudioDevice = selectedDevice;
     }
 
     // Assing On Button
     public void GetSelectedAudioDevice()
     {
-        string audioDevice = meeting?.GetSelectedAudioDevice(); 
-        Debug.Log("audio device " + audioDevice);   
-        selectedAudioDevice = JsonConvert.DeserializeObject<Device>(audioDevice);
+        selectedAudioDevice = meeting?.GetSelectedAudioDevice();
         Debug.Log($"device name {selectedAudioDevice.label}");
     }
 
@@ -481,13 +477,7 @@ public class GameManager : MonoBehaviour
     // Assign on button
     public void GetVideoDevices()
     {
-        string availableDevices = meeting?.GetVideoDevices();
-
-        Debug.Log("GetVideoDevices " + availableDevices);
-        //Deserialize directly from array JSON
-
-        availableVideoDevice = JsonConvert.DeserializeObject<Device[]>(availableDevices);
-
+        availableVideoDevice = meeting?.GetVideoDevices();
         //foreach (var device in availableVideoDevice)
         //{
         //    Debug.Log($"device name {device.label} {device.kind} {device.deviceId}");
@@ -523,24 +513,81 @@ public class GameManager : MonoBehaviour
         meeting?.ChangeVideoDevice(deviceLabel);
     }
 
-    private void OnVideoDeviceChanged(string availableDevice, string selectedDevice)
+    private void OnVideoDeviceChanged(Device[] availableDevice, Device selectedDevice)
     {
-        Debug.Log($"available devices {availableDevice}");
-        Debug.Log($"selectedDeviceJson {selectedDevice}");
+        availableVideoDevice = availableDevice;
+        selectedVideoDevice = selectedDevice;
     }
 
     // Assing On Button
     public void GetSelectedVideoDevice()
     {
-        string videoDevice = meeting?.GetSelectedVideoDevice();
-        Debug.Log("video device " + videoDevice);
-        selectedVideoDevice = JsonConvert.DeserializeObject<Device>(videoDevice);
+        selectedVideoDevice = meeting?.GetSelectedVideoDevice();
     }
 
+
+    // Custom Encoder for Audio
+    [Header("==== Custom Encoder ==== ")]
+    public VideoEncoderConfig videoEncoder;
+    public AudioEncoderConfig audioEncoder;
+    private CustomStream customAudioStream;
+    private CustomStream customVideoStream;
+    private Dictionary<string, CustomStream> customStreamConfig;
+    private Dictionary<string, CustomStream> GetCustomStream()
+    {
+        customStreamConfig.Clear();
+        customStreamConfig.Add("Audio", GetCustomAudioStream());
+        customStreamConfig.Add("Video", GetCustomVideoStream());
+
+       
+
+        return customStreamConfig;
+    }
+
+    private void CustomStreamInit()
+    {
+        customAudioStream = new CustomStream();
+        customVideoStream = new CustomStream();
+        customStreamConfig = new Dictionary<string, CustomStream>();
+        SelectAudioEncoder(0);
+        SelectVideoEncoder(0);
+    }
+
+    public void SelectAudioEncoder(int audioEncoderIndex)
+    {
+        string audioEncoder = this.audioEncoder.ToString();  //((AudioEncoderConfig)audioEncoderIndex).ToString();
+        customAudioStream.SetEncoderConfig(audioEncoder);
+    }
+
+    public void SelectAudioMultiStream(bool isMultiStream)
+    {
+        customAudioStream.SetMultiStream(isMultiStream);
+    }
+
+    public CustomStream GetCustomAudioStream()
+    {
+        customAudioStream.SetDevice(selectedAudioDevice.deviceId);
+        return customAudioStream;
+    }
+
+    // Custom Encoder for video
+    public void SelectVideoEncoder(int videoEncoderIndex)
+    {
+        string videoEncoder = this.videoEncoder.ToString(); //((VideoEncoderConfig)videoEncoderIndex).ToString();
+        customVideoStream.SetEncoderConfig(videoEncoder);
+    }
+
+    public void SelectVideoMultiStream(bool isMultiStream)
+    {
+        customVideoStream.SetMultiStream(isMultiStream);
+    }
+
+    public CustomStream GetCustomVideoStream()
+    {
+        customVideoStream.SetDevice(selectedVideoDevice.deviceId);
+        return customVideoStream;
+    }
     #endregion
-
-
-
 
 }
 
