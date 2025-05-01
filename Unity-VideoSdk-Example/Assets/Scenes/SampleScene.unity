@@ -159,9 +159,6 @@ MonoBehaviour:
   camBtn: {fileID: 262838007}
   _meetingIdTxt: {fileID: 1434164231}
   _meetingIdInputField: {fileID: 756554256}
-  devicePrefab: {fileID: 7295236249830597599, guid: ecdc3222d7202f74dbe61a9e14daaee9, type: 3}
-  deviceCloneContent: {fileID: 1961930288}
-  devicesContentPanel: {fileID: 1918551363}
   videoEncoder: 0
   audioEncoder: 4
 --- !u!4 &4916614
