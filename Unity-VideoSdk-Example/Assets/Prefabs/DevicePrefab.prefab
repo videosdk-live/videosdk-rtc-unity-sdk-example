@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 4306442694602044014}
   - component: {fileID: 5278722249410484552}
   - component: {fileID: 2847016675076842440}
+  - component: {fileID: 4805856364683608857}
   m_Layer: 5
   m_Name: DevicePrefab
   m_TagString: Untagged
@@ -122,6 +123,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &4805856364683608857
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3769033136737674784}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dcf38f2a8b72558449d6d74ea79acfbf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  deviceNameText: {fileID: 6839402267633567442}
+  checkBox: {fileID: 3771802898971928410}
+  button: {fileID: 2847016675076842440}
 --- !u!1 &3771802898971928410
 GameObject:
   m_ObjectHideFlags: 0

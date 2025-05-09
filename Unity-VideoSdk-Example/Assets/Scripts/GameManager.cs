@@ -12,23 +12,28 @@ using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
-    private bool _micToggle;
+    private bool _micToggle = true;
     private bool micToggle
     {
         get => _micToggle;
         set
         {
-            micBtn.image.color = value ? Color.green : Color.red;
+            preMeetingMic.image.sprite = value ? micOn : micOff;
+            meetingMic.image.sprite = value ? micOn : micOff;
             _micToggle = value;
         }
     }
-    private bool _camToggle;
+    private bool _camToggle = true;
     private bool camToggle
     {
         get => _camToggle;
         set
         {
-            camBtn.image.color = value ? Color.green : Color.red;
+            if (camToggle == value) return;
+            Debug.Log($"set _camToggle {value}");
+            preMeetingCam.image.sprite = value ? camOn : camOff;
+            meetingCam.image.sprite = value ? camOn : camOff;
+
             _camToggle = value;
         }
     }
@@ -38,7 +43,14 @@ public class GameManager : MonoBehaviour
     [SerializeField] GameObject _meetingJoinPanel;
     [SerializeField] GameObject _meetingPanel;
 
-    [SerializeField] Button micBtn, camBtn;
+    [Header("== Pre Meeting == ")]
+    [SerializeField] Button preMeetingMic;
+    [SerializeField] Button preMeetingCam;
+
+    [Header("== In Meeting == ")]
+    [SerializeField] Button meetingMic;
+    [SerializeField] Button meetingCam;
+    [SerializeField] Sprite micOn, micOff, camOn, camOff;
 
     private VideoSurface _localParticipant;
     private Meeting meeting;
@@ -66,16 +78,12 @@ public class GameManager : MonoBehaviour
         meeting.OnParticipantLeftCallback += OnParticipantLeft;
         meeting.OnCreateMeetingIdFailedCallback += OnCreateMeetingFailed;
         meeting.OnMeetingStateChangedCallback += OnMeetingStateChanged;
-
-        //meeting.OnAvailableAudioDevicesCallback += OnAvailableAudioDevices;
         meeting.OnAudioDeviceChangedCallback += OnAudioDeviceChanged;
-
-        //meeting.OnAvailableVideoDevicesCallback += OnAvailableVideoDevices;
-        meeting.OnVideoDeviceChangedCallback += OnVideoDeviceChanged;
 
         meeting.OnErrorCallback += OnError;
         _meetingJoinPanel.SetActive(true);
 
+        InitiallySetupDevice();
     }
 
     private void OnError(Error error)
@@ -100,6 +108,7 @@ public class GameManager : MonoBehaviour
             _localParticipant.OnStreamDisableCallback += OnStreamDisable;
             _meetingIdTxt.text = meeting.MeetingID;
             _meetingIdInputField.text = string.Empty;
+            PreMeetingController.OnStreamEnableOrDisable?.Invoke(false);
             _meetingJoinPanel.SetActive(false);
             _meetingPanel.SetActive(true);
 
@@ -161,13 +170,16 @@ public class GameManager : MonoBehaviour
         }
         _participantList.Clear();
         _meetingIdTxt.text = "VideoSDK Unity Demo";
+
+        PreMeetingController.OnSetCameraDeviceSet?.Invoke(selectedVideoDevice);
+        //PreMeetingController.OnStreamEnableOrDisable?.Invoke(true);
     }
 
     private void OnCreateMeeting(string meetingId)
     {
         _meetingIdTxt.text = meetingId;
         Debug.Log($"OnCreateMeeting {meetingId}");
-        meeting.Join(_token, meetingId, "User", true, true, customStreamConfig);
+        meeting.Join(_token, meetingId, "User", micToggle, camToggle, customVideoStream);
     }
 
     public void CreateMeeting()
@@ -201,9 +213,11 @@ public class GameManager : MonoBehaviour
         // Alert the user if microphone or camera permission is not granted.
         AlertNoPermission();
 
+
         try
         {
-            meeting.Join(_token, _meetingIdInputField.text, "User", true, true, customStreamConfig,  null);
+            SetCustomVideoStream();
+            meeting.Join(_token, _meetingIdInputField.text, "User", micToggle, camToggle, customVideoStream, null);
         }
         catch (Exception ex)
         {
@@ -215,15 +229,24 @@ public class GameManager : MonoBehaviour
     {
         camToggle = !camToggle;
         Debug.Log("Cam Toggle " + camToggle);
-        //customVideoStream.encoder = VideoEncoderConfig.h480p_w640p.ToString();
+
+        if (Meeting.MeetingState == MeetingState.NONE || Meeting.MeetingState == MeetingState.DISCONNECTED)
+        {
+            PreMeetingController.OnStreamEnableOrDisable?.Invoke(camToggle);
+            return;
+        }
+
+        CustomVideoStream customVideoStream = new CustomVideoStream(VideoEncoderConfig.h240p_w320p, false, selectedVideoDevice);
+        this.customVideoStream = customVideoStream;
         _localParticipant?.SetVideo(camToggle, customVideoStream);
     }
     public void AudioToggle()
     {
         micToggle = !micToggle;
         Debug.Log("Mic Toggle " + micToggle);
-        //customAudioStream.encoder = AudioEncoderConfig.music_standard.ToString();
-        _localParticipant?.SetAudio(micToggle, customAudioStream);
+        if (Meeting.MeetingState == MeetingState.NONE || Meeting.MeetingState == MeetingState.DISCONNECTED) return;
+
+        _localParticipant?.SetAudio(micToggle);
     }
 
     public void LeaveMeeting()
@@ -239,7 +262,6 @@ public class GameManager : MonoBehaviour
         {
             AudioStream(pause);
             VideoStream(pause);
-
         }
 
     }
@@ -385,22 +407,16 @@ public class GameManager : MonoBehaviour
 
     #region Get Devices
     [Header("=== Get Devices ===")]
-    private AudioDeviceInfo[] availableAudioDevice;
-    private AudioDeviceInfo selectedAudioDevice;
+    [SerializeField] private AudioDeviceInfo[] availableAudioDevice;
+    [SerializeField] private AudioDeviceInfo selectedAudioDevice;
     private VideoDeviceInfo[] availableVideoDevice;
     private VideoDeviceInfo selectedVideoDevice;
 
 
     // Assign on button
-    public void GetAudioDevices()
+    private void GetAudioDevices()
     {
         availableAudioDevice = meeting?.GetAudioDevices();
-    }
-
-    // Assign on button
-    public void ChangeAudioDevices(int index)
-    {
-        ChangeAudioDevices(availableAudioDevice[index]);
     }
 
     private void ChangeAudioDevices(AudioDeviceInfo audioDevice)
@@ -412,6 +428,8 @@ public class GameManager : MonoBehaviour
     {
         availableAudioDevice = availableDevice;
         selectedAudioDevice = selectedDevice;
+
+        CloseDevicePanel();
     }
 
     // Assing On Button
@@ -419,30 +437,29 @@ public class GameManager : MonoBehaviour
     {
         selectedAudioDevice = meeting?.GetSelectedAudioDevice();
         Debug.Log($"device name {selectedAudioDevice.label}");
-        SetCustomAudioStream();
     }
 
     // Assign on button
-    public void GetVideoDevices()
+    private void GetVideoDevices()
     {
         availableVideoDevice = meeting?.GetVideoDevices();
-    }
-
-    // Assign on button
-    public void ChangeVideoDevices(int index)
-    {
-        ChangeVideoDevices(availableVideoDevice[index]);
     }
 
     private void ChangeVideoDevices(VideoDeviceInfo videoDevice)
     {
         meeting?.ChangeVideoDevice(videoDevice);
-    }
+        if (Meeting.MeetingState == MeetingState.NONE || Meeting.MeetingState == MeetingState.DISCONNECTED)
+        {
+            camToggle = true;
+        }
 
-    private void OnVideoDeviceChanged(VideoDeviceInfo[] availableDevice, VideoDeviceInfo selectedDevice)
-    {
-        availableVideoDevice = availableDevice;
-        selectedVideoDevice = selectedDevice;
+        if (Meeting.MeetingState == MeetingState.CONNECTED)
+        {
+            CamToggle();
+            CamToggle();
+        }
+
+        PreMeetingController.OnSetCameraDeviceSet?.Invoke(videoDevice);
     }
 
     // Assing On Button
@@ -452,35 +469,149 @@ public class GameManager : MonoBehaviour
         SetCustomVideoStream();
     }
 
+    // UI setup for Get Devices
+
+    [SerializeField] private DeviceCloneController devicePrefab;
+    [SerializeField] private GameObject deviceSelectionPanel;
+    [SerializeField] private GameObject audioDeviceContent, videoDeviceContent;
+    private List<DeviceCloneController> audioDeviceCloneList = new List<DeviceCloneController>();
+    private List<DeviceCloneController> videoDeviceCloneList = new List<DeviceCloneController>();
+
+
+    private void InitiallySetupDevice()
+    {
+        ShowAudioDevice(true);
+        ShowVideoDevice(true);
+
+        for (int i = 0; i < availableVideoDevice.Length; i++)
+        {
+            if (availableVideoDevice[i].facingMode == FacingMode.front)
+            {
+                ChangeVideoDevices(availableVideoDevice[i]);
+                Invoke(nameof(GetSelectedVideoDevice), 0.1f);
+                break;
+            }
+        }
+
+    }
+
+    // Assing On Button
+    public void ShowAudioDevice(bool isInternalCall)
+    {
+        GetAudioDevices();
+        GetSelectedAudioDevice();
+        if (!isInternalCall)
+        {
+            ShowAudioDevice(availableAudioDevice, selectedAudioDevice);
+        }
+    }
+
+    private void ShowAudioDevice(AudioDeviceInfo[] availableDevice, AudioDeviceInfo selectedDevice)
+    {
+        audioDeviceCloneList.ForEach(device => Destroy(device.gameObject));
+        audioDeviceCloneList.Clear();
+
+        for (int i = 0; i < availableDevice.Length; i++)
+        {
+            DeviceCloneController audioDevice = Instantiate(devicePrefab, audioDeviceContent.transform);
+            audioDevice.SetData(availableDevice[i].label);
+
+            if (availableDevice[i].deviceId == selectedDevice.deviceId) audioDevice.SelectDevice(true);
+            else audioDevice.SelectDevice(false);
+
+            string deviceId = availableDevice[i].deviceId;
+            audioDevice.button.onClick.AddListener(() => SelectAudioDevice(deviceId));
+            audioDevice.transform.SetSiblingIndex(0);
+            audioDeviceCloneList.Add(audioDevice);
+        }
+        deviceSelectionPanel.SetActive(true);
+        audioDeviceContent.SetActive(true);
+        videoDeviceContent.SetActive(false);
+    }
+
+    public void CloseDevicePanel()
+    {
+        audioDeviceContent.SetActive(false);
+        deviceSelectionPanel.SetActive(false);
+        videoDeviceContent.SetActive(false);
+    }
+
+
+    private void SelectAudioDevice(string deviceId)
+    {
+        CloseDevicePanel();
+        if (selectedAudioDevice.deviceId == deviceId) return;
+
+        AudioDeviceInfo selectDevice = availableAudioDevice.FirstOrDefault(device => device.deviceId == deviceId);
+
+        if (selectDevice != null)
+        {
+            ChangeAudioDevices(selectDevice);
+        }
+        else Debug.Log($"Not found selected audio device");
+    }
+
+    // Assing On Button
+    public void ShowVideoDevice(bool isInternalCall)
+    {
+        GetVideoDevices();
+        if (!isInternalCall)
+        {
+            GetSelectedVideoDevice();
+            ShowVideoDevice(availableVideoDevice, selectedVideoDevice);
+        }
+    }
+
+    private void ShowVideoDevice(VideoDeviceInfo[] availableDevice, VideoDeviceInfo selectedDevice)
+    {
+        videoDeviceCloneList.ForEach(device => Destroy(device.gameObject));
+        videoDeviceCloneList.Clear();
+
+        for (int i = 0; i < availableDevice.Length; i++)
+        {
+            DeviceCloneController videoDevice = Instantiate(devicePrefab, videoDeviceContent.transform);
+            videoDevice.SetData(availableDevice[i].label);
+
+            if (availableDevice[i].deviceId == selectedDevice.deviceId) videoDevice.SelectDevice(true);
+            else videoDevice.SelectDevice(false);
+
+            string deviceId = availableDevice[i].deviceId;
+            videoDevice.button.onClick.AddListener(() => SelectVideoDevice(deviceId));
+            videoDevice.transform.SetSiblingIndex(0);
+            videoDeviceCloneList.Add(videoDevice);
+        }
+        deviceSelectionPanel.SetActive(true);
+        videoDeviceContent.SetActive(true);
+        audioDeviceContent.SetActive(false);
+    }
+
+    private void SelectVideoDevice(string deviceId)
+    {
+        CloseDevicePanel();
+        if (selectedVideoDevice.deviceId == deviceId) return;
+
+        VideoDeviceInfo selectDevice = availableVideoDevice.FirstOrDefault(device => device.deviceId == deviceId);
+
+        if (selectDevice != null)
+        {
+            ChangeVideoDevices(selectDevice);
+        }
+        else Debug.Log($"Not found selected audio device");
+    }
+
+    #endregion
 
     // Custom Encoder for Audio
     [Header("==== Custom Encoder ==== ")]
     public VideoEncoderConfig videoEncoder;
-    public AudioEncoderConfig audioEncoder;
-    private CustomAudioStream customAudioStream;
     private CustomVideoStream customVideoStream;
-    private Dictionary<string, ICustomStream> customStreamConfig = new Dictionary<string, ICustomStream>();
 
     // Custom Encoder for video
-
-
     private void SetCustomVideoStream()
     {
         CustomVideoStream customVideoStream = new CustomVideoStream(videoEncoder, false, selectedVideoDevice);
         this.customVideoStream = customVideoStream;
-        customStreamConfig["Video"] = this.customVideoStream;
     }
-
-    private void SetCustomAudioStream()
-    {
-        CustomAudioStream customAudioStream = new CustomAudioStream(audioEncoder, selectedAudioDevice);
-        this.customAudioStream = customAudioStream;
-        customStreamConfig["Audio"] = this.customAudioStream;
-    }
-
-
-
-    #endregion
 
 }
 

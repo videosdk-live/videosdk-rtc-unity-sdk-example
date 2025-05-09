@@ -5,18 +5,16 @@ using UnityEngine.UI;
 public class DeviceCloneController : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI deviceNameText;
-    [SerializeField] private Image checkBox;
-    [SerializeField] private Sprite select;
+    [SerializeField] private GameObject checkBox;
     public Button button;
 
     public void SetData(string deviceName)
     {
         deviceNameText.text = deviceName;
-        checkBox.sprite = null;
     }
 
-    public void SelectDevice()
+    public void SelectDevice(bool isSelect)
     {
-        checkBox.sprite = select;
+        checkBox.SetActive(isSelect);
     }
 }
