@@ -217,7 +217,7 @@ public class GameManager : MonoBehaviour
         try
         {
             SetCustomVideoStream();
-            meeting.Join(_token, _meetingIdInputField.text, "User", micToggle, camToggle, customVideoStream, null);
+            meeting.Join(_token, _meetingIdInputField.text, "User", micToggle, camToggle, customVideoStream);
         }
         catch (Exception ex)
         {
@@ -236,7 +236,18 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        CustomVideoStream customVideoStream = new CustomVideoStream(VideoEncoderConfig.h240p_w320p, false, selectedVideoDevice);
+        // Get all enum values
+        Array enumValues = Enum.GetValues(typeof(VideoEncoderConfig));
+
+        // Generate random index within the specified range
+        int randomIndex = UnityEngine.Random.Range(0, enumValues.Length); // end is inclusive
+
+        // Get the random config
+        VideoEncoderConfig videoEncoder = (VideoEncoderConfig)enumValues.GetValue(randomIndex);
+
+        Debug.Log($"Set Custom stream => {videoEncoder}");
+
+        CustomVideoStream customVideoStream = new CustomVideoStream(videoEncoder, false, selectedVideoDevice);
         this.customVideoStream = customVideoStream;
         _localParticipant?.SetVideo(camToggle, customVideoStream);
     }
@@ -452,13 +463,6 @@ public class GameManager : MonoBehaviour
         {
             camToggle = true;
         }
-
-        if (Meeting.MeetingState == MeetingState.CONNECTED)
-        {
-            CamToggle();
-            CamToggle();
-        }
-
         PreMeetingController.OnSetCameraDeviceSet?.Invoke(videoDevice);
     }
 
@@ -609,6 +613,7 @@ public class GameManager : MonoBehaviour
     // Custom Encoder for video
     private void SetCustomVideoStream()
     {
+        Debug.Log($"Set Custom stream => {videoEncoder}");
         CustomVideoStream customVideoStream = new CustomVideoStream(videoEncoder, false, selectedVideoDevice);
         this.customVideoStream = customVideoStream;
     }
