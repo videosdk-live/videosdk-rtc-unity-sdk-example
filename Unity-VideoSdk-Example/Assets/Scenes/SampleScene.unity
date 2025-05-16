@@ -174,7 +174,7 @@ MonoBehaviour:
   deviceSelectionPanel: {fileID: 986321385}
   audioDeviceContent: {fileID: 390690767}
   videoDeviceContent: {fileID: 1620116446}
-  videoEncoder: 4
+  videoEncoder: 2
 --- !u!4 &4916614
 Transform:
   m_ObjectHideFlags: 0

@@ -1,13 +1,11 @@
 using EasyUI.Toast;
 using live.videosdk;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Android;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
@@ -54,7 +52,7 @@ public class GameManager : MonoBehaviour
 
     private VideoSurface _localParticipant;
     private Meeting meeting;
-    private readonly string _token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlrZXkiOiI0Y2NhMmM3YS0wYmM2LTQzMmQtYTA5Zi1kZTVjNzJlNTY0YzgiLCJwZXJtaXNzaW9ucyI6WyJhbGxvd19qb2luIl0sImlhdCI6MTc0NDY4ODEwNCwiZXhwIjoxNzQ3MjgwMTA0fQ.jJT8LF724vmbd0fCU8GeHoxXSqmx9qf-TFlO3yO6s2Q";
+    private readonly string _token = String.Empty;
 
     [SerializeField] TMP_Text _meetingIdTxt;
     [SerializeField] TMP_InputField _meetingIdInputField;
@@ -171,7 +169,10 @@ public class GameManager : MonoBehaviour
         _participantList.Clear();
         _meetingIdTxt.text = "VideoSDK Unity Demo";
 
+        Debug.Log($"On Leave {selectedVideoDevice.facingMode}");
         PreMeetingController.OnSetCameraDeviceSet?.Invoke(selectedVideoDevice);
+        //InitiallySetupDevice();
+
         //PreMeetingController.OnStreamEnableOrDisable?.Invoke(true);
     }
 
@@ -249,7 +250,8 @@ public class GameManager : MonoBehaviour
 
         CustomVideoStream customVideoStream = new CustomVideoStream(videoEncoder, false, selectedVideoDevice);
         this.customVideoStream = customVideoStream;
-        _localParticipant?.SetVideo(camToggle, customVideoStream);
+        //_localParticipant?.SetVideo(camToggle, customVideoStream);
+        _localParticipant?.SetVideo(camToggle);
     }
     public void AudioToggle()
     {
@@ -470,6 +472,8 @@ public class GameManager : MonoBehaviour
     public void GetSelectedVideoDevice()
     {
         selectedVideoDevice = meeting?.GetSelectedVideoDevice();
+        Debug.Log($"GetSelectedVideoDevice {selectedVideoDevice.facingMode}");
+
         SetCustomVideoStream();
     }
 
@@ -615,6 +619,10 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log($"Set Custom stream => {videoEncoder}");
         CustomVideoStream customVideoStream = new CustomVideoStream(videoEncoder, false, selectedVideoDevice);
+        //CustomVideoStream customVideoStream = new CustomVideoStream(videoEncoder, false);
+        //CustomVideoStream customVideoStream = new CustomVideoStream(videoEncoder);
+        //CustomVideoStream customVideoStream = new CustomVideoStream(isMultiStream : true);
+        //CustomVideoStream customVideoStream = new CustomVideoStream(videoDevice: selectedVideoDevice);
         this.customVideoStream = customVideoStream;
     }
 
