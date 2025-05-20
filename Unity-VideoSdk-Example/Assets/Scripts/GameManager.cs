@@ -52,7 +52,8 @@ public class GameManager : MonoBehaviour
 
     private VideoSurface _localParticipant;
     private Meeting meeting;
-    private readonly string _token = String.Empty;
+    private readonly string _token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlrZXkiOiI0Y2NhMmM3YS0wYmM2LTQzMmQtYTA5Zi1kZTVjNzJlNTY0YzgiLCJwZXJtaXNzaW9ucyI6WyJhbGxvd19qb2luIl0sImlhdCI6MTc0NzY1MTE3NSwiZXhwIjoxNzYzMjAzMTc1fQ.IV7mTxdile8yfAwbkMGhuUySjSEvwXhSE-kPhAjM82o";
+    //private readonly string _token = String.Empty;
 
     [SerializeField] TMP_Text _meetingIdTxt;
     [SerializeField] TMP_InputField _meetingIdInputField;
@@ -65,6 +66,7 @@ public class GameManager : MonoBehaviour
         _meetingJoinPanel.SetActive(false);
         // Request for Camera and Mic Permission
         RequestForPermission();
+        CheckAndRequestBluetoothPermissions();
     }
     void Start()
     {
@@ -80,8 +82,6 @@ public class GameManager : MonoBehaviour
 
         meeting.OnErrorCallback += OnError;
         _meetingJoinPanel.SetActive(true);
-
-        InitiallySetupDevice();
     }
 
     private void OnError(Error error)
@@ -171,9 +171,6 @@ public class GameManager : MonoBehaviour
 
         Debug.Log($"On Leave {selectedVideoDevice.facingMode}");
         PreMeetingController.OnSetCameraDeviceSet?.Invoke(selectedVideoDevice);
-        //InitiallySetupDevice();
-
-        //PreMeetingController.OnStreamEnableOrDisable?.Invoke(true);
     }
 
     private void OnCreateMeeting(string meetingId)
@@ -375,20 +372,22 @@ public class GameManager : MonoBehaviour
                 callbacks.PermissionDeniedAndDontAskAgain += OnPermissionDeniedAndDontAskAgain;
                 Permission.RequestUserPermissions(new string[] { Permission.Microphone, Permission.Camera }, callbacks);
             }
-
-            CheckAndRequestBluetoothPermissions();
+            Debug.Log($"Going to take bt permission");
         }
-
     }
     public void CheckAndRequestBluetoothPermissions()
     {
+        Debug.Log($"CheckAndRequestBluetoothPermissions 0");
         if (Application.platform == RuntimePlatform.Android)
         {
             string BluetoothConnectPermission = "android.permission.BLUETOOTH_CONNECT";
             if (AndroidVersion() >= 31) // Android 12+
             {
+                Debug.Log($"CheckAndRequestBluetoothPermissions 1");
+
                 if (!Permission.HasUserAuthorizedPermission(BluetoothConnectPermission))
                 {
+                    Debug.Log($"CheckAndRequestBluetoothPermissions 2");
                     Permission.RequestUserPermission(BluetoothConnectPermission);
                 }
                 else
@@ -465,7 +464,7 @@ public class GameManager : MonoBehaviour
         {
             camToggle = true;
         }
-        PreMeetingController.OnSetCameraDeviceSet?.Invoke(videoDevice);
+        
     }
 
     // Assing On Button
@@ -485,33 +484,12 @@ public class GameManager : MonoBehaviour
     private List<DeviceCloneController> audioDeviceCloneList = new List<DeviceCloneController>();
     private List<DeviceCloneController> videoDeviceCloneList = new List<DeviceCloneController>();
 
-
-    private void InitiallySetupDevice()
-    {
-        ShowAudioDevice(true);
-        ShowVideoDevice(true);
-
-        for (int i = 0; i < availableVideoDevice.Length; i++)
-        {
-            if (availableVideoDevice[i].facingMode == FacingMode.front)
-            {
-                ChangeVideoDevices(availableVideoDevice[i]);
-                Invoke(nameof(GetSelectedVideoDevice), 0.1f);
-                break;
-            }
-        }
-
-    }
-
     // Assing On Button
-    public void ShowAudioDevice(bool isInternalCall)
+    public void ShowAudioDevice()
     {
         GetAudioDevices();
         GetSelectedAudioDevice();
-        if (!isInternalCall)
-        {
-            ShowAudioDevice(availableAudioDevice, selectedAudioDevice);
-        }
+        ShowAudioDevice(availableAudioDevice, selectedAudioDevice);
     }
 
     private void ShowAudioDevice(AudioDeviceInfo[] availableDevice, AudioDeviceInfo selectedDevice)
@@ -560,14 +538,11 @@ public class GameManager : MonoBehaviour
     }
 
     // Assing On Button
-    public void ShowVideoDevice(bool isInternalCall)
+    public void ShowVideoDevice()
     {
         GetVideoDevices();
-        if (!isInternalCall)
-        {
-            GetSelectedVideoDevice();
-            ShowVideoDevice(availableVideoDevice, selectedVideoDevice);
-        }
+        GetSelectedVideoDevice();
+        ShowVideoDevice(availableVideoDevice, selectedVideoDevice);
     }
 
     private void ShowVideoDevice(VideoDeviceInfo[] availableDevice, VideoDeviceInfo selectedDevice)
