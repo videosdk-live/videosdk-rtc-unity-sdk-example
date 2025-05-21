@@ -168,9 +168,6 @@ public class GameManager : MonoBehaviour
         }
         _participantList.Clear();
         _meetingIdTxt.text = "VideoSDK Unity Demo";
-
-        Debug.Log($"On Leave {selectedVideoDevice.facingMode}");
-        PreMeetingController.OnSetCameraDeviceSet?.Invoke(selectedVideoDevice);
     }
 
     private void OnCreateMeeting(string meetingId)
