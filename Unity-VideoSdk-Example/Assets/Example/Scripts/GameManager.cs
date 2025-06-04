@@ -52,9 +52,7 @@ public class GameManager : MonoBehaviour
 
     private VideoSurface _localParticipant;
     private Meeting meeting;
-    //private readonly string _token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlrZXkiOiI0Y2NhMmM3YS0wYmM2LTQzMmQtYTA5Zi1kZTVjNzJlNTY0YzgiLCJwZXJtaXNzaW9ucyI6WyJhbGxvd19qb2luIl0sImlhdCI6MTc0NzY1MTE3NSwiZXhwIjoxNzYzMjAzMTc1fQ.IV7mTxdile8yfAwbkMGhuUySjSEvwXhSE-kPhAjM82o";
-    [SerializeField] private string _token;
-    //private readonly string _token = String.Empty;
+    [SerializeField] private string _token = string.Empty;
 
     [SerializeField] TMP_Text _meetingIdTxt;
     [SerializeField] TMP_InputField _meetingIdInputField;
@@ -114,7 +112,7 @@ public class GameManager : MonoBehaviour
             _meetingPanel.SetActive(true);
 
         }
-        
+
     }
 
     private void OnStreamDisable(StreamKind kind)
@@ -608,26 +606,52 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI messageText;
     [SerializeField] private GameObject opponentControl;
 
-    private void OnWebcamRequested(string participantId)
+    [SerializeField] private Button acceptBtn, rejectBtn;
+
+    private void OnWebcamRequested(string participantId, Action accept, Action reject)
     {
         messageText.text = $"{participantId} request to you enable your camera.";
         popup.SetActive(true);
+
+        // Clear previous listeners to avoid stacking
+        acceptBtn.onClick.RemoveAllListeners();
+        rejectBtn.onClick.RemoveAllListeners();
+        // Add new listeners
+        acceptBtn.onClick.AddListener(() =>
+        {
+            accept?.Invoke();
+            popup.SetActive(false);
+        });
+
+        rejectBtn.onClick.AddListener(() =>
+        {
+            reject?.Invoke();
+            popup.SetActive(false);
+        });
     }
 
-    private void OnMicRequested(string participantId)
+    private void OnMicRequested(string participantId, Action accept, Action reject)
     {
         Debug.Log($"{participantId} request to you enable your mic.");
         messageText.text = $"{participantId} request to you enable your mic.";
         popup.SetActive(true);
-    }
 
-    // Assign on button
-    public void RequestAcceptOrReject(bool isAccept)
-    {
-        meeting.Request(isAccept);
-        popup.SetActive(false);
-    }
+        // Clear previous listeners to avoid stacking
+        acceptBtn.onClick.RemoveAllListeners();
+        rejectBtn.onClick.RemoveAllListeners();
+        // Add new listeners
+        acceptBtn.onClick.AddListener(() =>
+        {
+            accept?.Invoke();
+            popup.SetActive(false);
+        });
 
+        rejectBtn.onClick.AddListener(() =>
+        {
+            reject?.Invoke();
+            popup.SetActive(false);
+        });
+    }
     #endregion
 
 }
