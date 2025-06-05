@@ -50,7 +50,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] Button meetingCam;
     [SerializeField] Sprite micOn, micOff, camOn, camOff;
 
-    private VideoSurface _localParticipant;
+    private VideoSurface _localParticipant, _remoteParticipant;
     private Meeting meeting;
     [SerializeField] private string _token = string.Empty;
 
@@ -110,9 +110,14 @@ public class GameManager : MonoBehaviour
             PreMeetingController.OnStreamEnableOrDisable?.Invoke(false);
             _meetingJoinPanel.SetActive(false);
             _meetingPanel.SetActive(true);
-
         }
-
+        else
+        {
+            _remoteParticipant = surface;
+            _remoteParticipant.OnStreamEnableCallback += OnRemoteStreamEnable;
+            _remoteParticipant.OnStreamDisableCallback += OnRemoteStreamDisable;
+            remoteControl.SetActive(true);
+        }
     }
 
     private void OnStreamDisable(StreamKind kind)
@@ -136,6 +141,7 @@ public class GameManager : MonoBehaviour
         if (participant.IsLocal)
         {
             OnLeave();
+            PreMeetingController.OnSetCameraDeviceSet?.Invoke(Meeting.selectedVideoDevice);
         }
         else
         {
@@ -155,6 +161,8 @@ public class GameManager : MonoBehaviour
             {
                 Destroy(surfaceToRemove.transform.parent.gameObject);
             }
+            _remoteParticipant = null;
+            remoteControl.SetActive(false);
         }
     }
 
@@ -463,7 +471,7 @@ public class GameManager : MonoBehaviour
         {
             camToggle = true;
         }
-
+        PreMeetingController.OnSetCameraDeviceSet?.Invoke(Meeting.selectedVideoDevice);
     }
 
     // Assing On Button
@@ -604,9 +612,65 @@ public class GameManager : MonoBehaviour
     [Header("=== Remote Access === ")]
     [SerializeField] private GameObject popup;
     [SerializeField] private TextMeshProUGUI messageText;
-    [SerializeField] private GameObject opponentControl;
+    [SerializeField] private GameObject remoteControl;
 
     [SerializeField] private Button acceptBtn, rejectBtn;
+    [SerializeField] private Button remoteMic, remoteCam;
+
+
+    private bool _remoteMicToggle = true;
+    private bool remoteMicToggle
+    {
+        get => _remoteMicToggle;
+        set
+        {
+            remoteMic.image.sprite = value ? micOn : micOff;
+            _remoteMicToggle = value;
+        }
+    }
+    private bool _remoteCamToggle = true;
+    private bool remoteCamToggle
+    {
+        get => _remoteCamToggle;
+        set
+        {
+            Debug.Log($"set _camToggle {value}");
+            remoteCam.image.sprite = value ? camOn : camOff;
+            _remoteCamToggle = value;
+        }
+    }
+
+    private void OnRemoteStreamDisable(StreamKind kind)
+    {
+        Debug.Log($"OnRemoteStreamDisable {kind}");
+        remoteCamToggle = _remoteParticipant.CamEnabled;
+        remoteMicToggle = _remoteParticipant.MicEnabled;
+    }
+
+    private void OnRemoteStreamEnable(StreamKind kind)
+    {
+        Debug.Log($"OnRemoteStreamEnable {kind}");
+        remoteCamToggle = _remoteParticipant.CamEnabled;
+        remoteMicToggle = _remoteParticipant.MicEnabled;
+    }
+
+    // Assign on button
+    public void RemoteMicToggle()
+    {
+        bool status = !_remoteParticipant.MicEnabled;
+        _remoteParticipant.SetAudio(status);
+    }
+    // Assign on button
+    public void RemoteWebCamToggle()
+    {
+        bool status = !_remoteParticipant.CamEnabled;
+        _remoteParticipant.SetVideo(status);
+    }
+    // Assign on button
+    public void RemoveRemoteParticipant()
+    {
+        _remoteParticipant.Remove();
+    }
 
     private void OnWebcamRequested(string participantId, Action accept, Action reject)
     {
