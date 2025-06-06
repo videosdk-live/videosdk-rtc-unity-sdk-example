@@ -103,17 +103,28 @@ namespace live.videosdk
             Debug.Log($"StreamEnableOrDisable {isEnable}");
             if (isEnable)
             {
+                if (webcamTexture == null) return;
+
+                if (rawImage.texture != webcamTexture)
+                    rawImage.texture = webcamTexture;
+
                 if (webcamTexture != null && !webcamTexture.isPlaying)
                 {
                     webcamTexture.Play();
                     Debug.Log("Camera resumed.");
                 }
+                StartCoroutine(ApplyRotationLater());
             }
             else if (webcamTexture != null && webcamTexture.isPlaying)
             {
                 webcamTexture.Stop();
                 Debug.Log("Camera stopped.");
             }
+        }
+
+        private void OnDisable()
+        {
+            StreamEnableOrDisable(false);
         }
     }
 }
