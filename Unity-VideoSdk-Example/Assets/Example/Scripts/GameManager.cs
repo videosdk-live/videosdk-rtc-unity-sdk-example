@@ -50,7 +50,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] Button meetingCam;
     [SerializeField] Sprite micOn, micOff, camOn, camOff;
 
-    private VideoSurface _localParticipant, _remoteParticipant;
+    private VideoSurface _localParticipant;
     private Meeting meeting;
     [SerializeField] private string _token = string.Empty;
 
@@ -111,13 +111,9 @@ public class GameManager : MonoBehaviour
             _meetingJoinPanel.SetActive(false);
             _meetingPanel.SetActive(true);
         }
-        else
-        {
-            _remoteParticipant = surface;
-            _remoteParticipant.OnStreamEnableCallback += OnRemoteStreamEnable;
-            _remoteParticipant.OnStreamDisableCallback += OnRemoteStreamDisable;
-            remoteControl.SetActive(true);
-        }
+
+        AddParticipantInList(surface);
+
     }
 
     private void OnStreamDisable(StreamKind kind)
@@ -149,7 +145,7 @@ public class GameManager : MonoBehaviour
             VideoSurface surfaceToRemove = null;
             for (int i = 0; i < _participantList.Count; i++)
             {
-                if (participant.ParticipantId == _participantList[i].Id)
+                if (participant.Id == _participantList[i].ParticipantId)
                 {
                     surfaceToRemove = _participantList[i];
                     _participantList.RemoveAt(i);
@@ -160,9 +156,9 @@ public class GameManager : MonoBehaviour
             if (surfaceToRemove != null)
             {
                 Destroy(surfaceToRemove.transform.parent.gameObject);
+                RemoveParticipantFromList(surfaceToRemove);
             }
-            _remoteParticipant = null;
-            remoteControl.SetActive(false);
+
         }
     }
 
@@ -178,6 +174,7 @@ public class GameManager : MonoBehaviour
         }
         _participantList.Clear();
         _meetingIdTxt.text = "VideoSDK Unity Demo";
+        ClearParticipantList();
     }
 
     private void OnCreateMeeting(string meetingId)
@@ -612,66 +609,8 @@ public class GameManager : MonoBehaviour
     [Header("=== Remote Access === ")]
     [SerializeField] private GameObject popup;
     [SerializeField] private TextMeshProUGUI messageText;
-    [SerializeField] private GameObject remoteControl;
 
     [SerializeField] private Button acceptBtn, rejectBtn;
-    [SerializeField] private Button remoteMic, remoteCam;
-
-
-    private bool _remoteMicToggle = true;
-    private bool remoteMicToggle
-    {
-        get => _remoteMicToggle;
-        set
-        {
-            remoteMic.image.sprite = value ? micOn : micOff;
-            _remoteMicToggle = value;
-        }
-    }
-    private bool _remoteCamToggle = true;
-    private bool remoteCamToggle
-    {
-        get => _remoteCamToggle;
-        set
-        {
-            Debug.Log($"set _camToggle {value}");
-            remoteCam.image.sprite = value ? camOn : camOff;
-            _remoteCamToggle = value;
-        }
-    }
-
-    private void OnRemoteStreamDisable(StreamKind kind)
-    {
-        Debug.Log($"OnRemoteStreamDisable {kind}");
-        remoteCamToggle = _remoteParticipant.CamEnabled;
-        remoteMicToggle = _remoteParticipant.MicEnabled;
-    }
-
-    private void OnRemoteStreamEnable(StreamKind kind)
-    {
-        Debug.Log($"OnRemoteStreamEnable {kind}");
-        remoteCamToggle = _remoteParticipant.CamEnabled;
-        remoteMicToggle = _remoteParticipant.MicEnabled;
-    }
-
-    // Assign on button
-    public void RemoteMicToggle()
-    {
-        bool status = !_remoteParticipant.MicEnabled;
-        _remoteParticipant.SetAudio(status);
-    }
-    // Assign on button
-    public void RemoteWebCamToggle()
-    {
-        bool status = !_remoteParticipant.CamEnabled;
-        _remoteParticipant.SetVideo(status);
-    }
-    // Assign on button
-    public void RemoveRemoteParticipant()
-    {
-        _remoteParticipant.Remove();
-    }
-
     private void OnWebcamRequested(string participantId, Action accept, Action reject)
     {
         messageText.text = $"{participantId} request to you enable your camera.";
@@ -716,6 +655,52 @@ public class GameManager : MonoBehaviour
             popup.SetActive(false);
         });
     }
+    #endregion
+
+
+    #region Participant List
+
+    [Header("=== Participant List ===")]
+    [SerializeField] ParticipantController participantClone;
+    [SerializeField] GameObject participantPanel;
+    [SerializeField] GameObject participantContent;
+    [SerializeField] TextMeshProUGUI participantCount;
+
+    // Assign on Show Participant Button
+    public void ShowParticipantPanel(bool isVisible)
+    {
+        participantPanel.SetActive(isVisible);
+    }
+    private void AddParticipantInList(VideoSurface participant)
+    {
+        ParticipantController newParticipant = Instantiate(participantClone, participantContent.transform);
+        newParticipant.SetParticipant(participant);
+        participantCount.text = $"Participants ({_participantList.Count})";
+    }
+
+    private void RemoveParticipantFromList(VideoSurface participant)
+    {
+        foreach (Transform participantClone in participantContent.transform)
+        {
+            if (participantClone.GetComponent<ParticipantController>().participant == participant)
+            {
+                Destroy(participantClone.gameObject);
+            }
+        }
+        participantCount.text = $"Participants ({_participantList.Count})";
+    }
+
+    private void ClearParticipantList()
+    {
+        foreach (Transform participantClone in participantContent.transform)
+        {
+            Destroy(participantClone.gameObject);
+        }
+
+        ShowParticipantPanel(false);
+    }
+
+
     #endregion
 
 }
